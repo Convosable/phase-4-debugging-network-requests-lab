@@ -62,12 +62,70 @@ developing your own process.
 
 - Add a new toy when the toy form is submitted
 
-  - How I debugged:
+  - How I debugged:  
+    Error message: POST http://localhost:4000/toys 500 (Internal Server Error)
+
+    Since its a 500 error, there must be a problem with the server, so I checked the server logs in the terminal.
+
+    Message from console: NameError (uninitialized constant ToysController::Toys):
+    app/controllers/toys_controller.rb:10:in `create'
+
+    Went to the ToysController and saw this for create:
+      def create
+        toy = Toys.create(toy_params)
+        render json: toy, status: :created
+      end
+
+    The problem is a typo (s at the end of Toy)... it should be:
+    toy = Toy.create(toy_params)
+
+    Error resolved!
+
+
 
 - Update the number of likes for a toy
 
   - How I debugged:
+    Error message: Uncaught (in promise) SyntaxError: Unexpected end of JSON input at ToyCard.js:27:1
+
+    Since its an Unexpected end of JSON error, I checked the fetch request and the controller to see if any json is being returned.
+
+    Went to the ToysController and saw this for update:
+    def update
+      toy = Toy.find_by(id: params[:id])
+      toy.update(toy_params)
+    end
+
+    There is noo json being rendered after updating the toy, so no data is being sent back to the front end.
+
+    To fix, we add the line render json: toy, status: :accepted.
+
+    Error resolved!
+
+
 
 - Donate a toy to Goodwill (and delete it from our database)
 
   - How I debugged:
+    Error message: DELETE http://localhost:4000/toys/9 404 (Not Found)
+
+    Since its a 400 error, I check the network tab to see if there is a message with more details.
+    Under preview I see:
+    error
+    : 
+    "Not Found"
+    exception
+    : 
+    "#<ActionController::RoutingError: No route matches [DELETE] \"/toys/9\">"
+    status
+    :
+    404
+
+    So there is an issue in my routung, so I check routes.rb in config and find:
+    resources :toys, only: [:index, :create, :update]
+
+    There is no route set up for destroy.
+    To fix, add :destroy after update.
+      resources :toys, only: [:index, :create, :update, :destroy]
+
+    Error resolved!
